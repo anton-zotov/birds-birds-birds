@@ -16,7 +16,7 @@ export class Obstacle {
         ctx.arc(this.center.x, this.center.y, this.radius, 0, 2 * Math.PI);
         ctx.closePath();
 
-        ctx.fillStyle = "red";
+        ctx.fillStyle = "#8D99AE";
         ctx.fill();
 
         ctx.restore();

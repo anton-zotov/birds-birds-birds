@@ -39,6 +39,11 @@ function generateObstacles(amount: number): void {
 
 function runSimulation(frameCount = 0) {
     canvas.clear();
+
+    // paint canvas black
+    canvas.context.fillStyle = "#2B2D42";
+    canvas.context.fillRect(0, 0, canvas.width, canvas.height);
+
     boids.forEach((boid, i) => {
         boid.update(boids, getCursorPosition(), obstacles, canvas.width, canvas.height);
         if (boid.isOutside(canvas.width, canvas.height)) {
@@ -62,7 +67,7 @@ function drawCursor() {
     if (cursorPosition) {
         const size = 10;
 
-        canvas.context.strokeStyle = "blue";
+        canvas.context.strokeStyle = "#EF233C";
         canvas.context.beginPath();
         canvas.context.moveTo(cursorPosition.x - size, cursorPosition.y - size);
         canvas.context.lineTo(cursorPosition.x + size, cursorPosition.y + size);
