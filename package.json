@@ -8,6 +8,7 @@
         "start": "parcel index.html",
         "build": "parcel build index.html --public-url ./",
         "test": "jest",
+        "predeploy": "yarn build",
         "deploy": "gh-pages -d dist"
     },
     "keywords": [],
