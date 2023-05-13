@@ -618,7 +618,7 @@ function drawCursor() {
   generateBirds(birdCount);
 });
 generateObstacles(10);
-generateBirds(300);
+generateBirds(200);
 runSimulation();
 },{"./styles.css":"src/styles.css","./bird":"src/bird.ts","./boid":"src/boid.ts","./vector":"src/vector.ts","./canvas":"src/canvas.ts","./ui":"src/ui.ts","./obstacle":"src/obstacle.ts"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
