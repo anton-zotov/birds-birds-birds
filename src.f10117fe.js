@@ -550,7 +550,7 @@ var ui_1 = require("./ui");
 var obstacle_1 = require("./obstacle");
 var canvas = new canvas_1.Canvas("canvas");
 function generateRandomBoid() {
-  var MAX_SPEED = 2;
+  var MAX_SPEED = 4;
   var MAX_FORCE = 0.05;
   var position = new vector_1.Vector(Math.random() * canvas.width, Math.random() * canvas.height);
   var velocity = new vector_1.Vector(Math.random() - 0.5, Math.random() - 0.5);
@@ -645,7 +645,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54444" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54876" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
