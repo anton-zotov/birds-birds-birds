@@ -355,8 +355,9 @@ var Boid = /** @class */function () {
     return this.getAverageVector(velocityVectors);
   };
   Boid.prototype.calculateCohesionForce = function (boids, range) {
+    var _this = this;
     var positionVectors = this.getBoidsInRange(boids, range).map(function (boid) {
-      return boid.position;
+      return boid.position.sub(_this.position);
     });
     return this.getAverageVector(positionVectors);
   };
@@ -637,7 +638,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53087" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53831" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
