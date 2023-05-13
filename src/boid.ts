@@ -56,11 +56,11 @@ export class Boid {
     }
 
     private applyFlockingBehaviors(boids: Boid[]): void {
-        this.alignmentForce = this.calculateAlignmentForce(boids, 50);
-        this.cohesionForce = this.calculateCohesionForce(boids, 50);
         this.separationForce = this.calculateSeparationForce(boids, 50);
+        this.alignmentForce = this.calculateAlignmentForce(boids, 100);
+        this.cohesionForce = this.calculateCohesionForce(boids, 100);
 
-        this.applySteerForce(this.separationForce);
+        this.applySteerForce(this.separationForce, this.maxForce * 1.5);
         this.applySteerForce(this.alignmentForce);
         this.applySteerForce(this.cohesionForce);
     }
@@ -176,13 +176,13 @@ export class Boid {
         this.acceleration = this.acceleration.add(force);
     }
 
-    private applySteerForce(force: Vector): void {
+    private applySteerForce(force: Vector, maxForce = this.maxForce): void {
         if (force.mag() > 0) {
             const steerForce = force
                 .normalize()
                 .mult(this.maxSpeed)
                 .sub(this.velocity)
-                .limit(this.maxForce);
+                .limit(maxForce);
             this.applyForce(steerForce);
         }
     }
