@@ -19,7 +19,7 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     #panel {
         padding: 20px;
         font-size: 30px;
