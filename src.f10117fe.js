@@ -316,10 +316,10 @@ var Boid = /** @class */function () {
     return steer;
   };
   Boid.prototype.applyFlockingBehaviors = function (boids) {
-    this.alignmentForce = this.calculateAlignmentForce(boids, 50);
-    this.cohesionForce = this.calculateCohesionForce(boids, 50);
     this.separationForce = this.calculateSeparationForce(boids, 50);
-    this.applySteerForce(this.separationForce);
+    this.alignmentForce = this.calculateAlignmentForce(boids, 100);
+    this.cohesionForce = this.calculateCohesionForce(boids, 100);
+    this.applySteerForce(this.separationForce, this.maxForce * 1.5);
     this.applySteerForce(this.alignmentForce);
     this.applySteerForce(this.cohesionForce);
   };
@@ -402,9 +402,12 @@ var Boid = /** @class */function () {
   Boid.prototype.applyForce = function (force) {
     this.acceleration = this.acceleration.add(force);
   };
-  Boid.prototype.applySteerForce = function (force) {
+  Boid.prototype.applySteerForce = function (force, maxForce) {
+    if (maxForce === void 0) {
+      maxForce = this.maxForce;
+    }
     if (force.mag() > 0) {
-      var steerForce = force.normalize().mult(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
+      var steerForce = force.normalize().mult(this.maxSpeed).sub(this.velocity).limit(maxForce);
       this.applyForce(steerForce);
     }
   };
@@ -638,7 +641,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53831" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54202" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
