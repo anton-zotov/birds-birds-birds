@@ -33,4 +33,33 @@ export class Bird {
 
         ctx.restore();
     }
+
+    printBoidForces(ctx: CanvasRenderingContext2D): void {
+        ctx.save();
+
+        ctx.font = "10px Arial";
+
+        ctx.fillStyle = "black";
+        ctx.fillText(
+            `${this.boid.alignmentForce.x.toFixed(2)}, ${this.boid.alignmentForce.y.toFixed(2)}`,
+            this.boid.position.x + 10,
+            this.boid.position.y - 10
+        );
+
+        ctx.fillStyle = "red";
+        ctx.fillText(
+            `${this.boid.cohesionForce.x.toFixed(2)}, ${this.boid.cohesionForce.y.toFixed(2)}`,
+            this.boid.position.x + 10,
+            this.boid.position.y
+        );
+
+        ctx.fillStyle = "blue";
+        ctx.fillText(
+            `${this.boid.separationForce.x.toFixed(2)}, ${this.boid.separationForce.y.toFixed(2)}`,
+            this.boid.position.x + 10,
+            this.boid.position.y + 10
+        );
+
+        ctx.restore();
+    }
 }

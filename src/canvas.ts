@@ -14,6 +14,14 @@ export class Canvas {
         window.addEventListener("resize", () => this.updateSize());
     }
 
+    get width(): number {
+        return this.element.width;
+    }
+
+    get height(): number {
+        return this.element.height;
+    }
+
     private updateSize(): void {
         this.element.width = window.innerWidth;
         this.element.height = window.innerHeight;

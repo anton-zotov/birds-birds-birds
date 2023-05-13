@@ -10,10 +10,7 @@ const canvas = new Canvas("canvas");
 function generateRandomBoid(): Boid {
     const MAX_SPEED = 2;
     const MAX_FORCE = 0.05;
-    const position = new Vector(
-        Math.random() * canvas.element.width,
-        Math.random() * canvas.element.height
-    );
+    const position = new Vector(Math.random() * canvas.width, Math.random() * canvas.height);
     const velocity = new Vector(Math.random() - 0.5, Math.random() - 0.5);
 
     return new Boid(position, velocity, MAX_SPEED, MAX_FORCE);
@@ -30,8 +27,8 @@ let birds: Bird[];
 function runSimulation(frameCount = 0) {
     canvas.clear();
     boids.forEach((boid, i) => {
-        boid.update(boids, getCursorPosition());
-        if (boid.isOutside(canvas.element.width, canvas.element.height)) {
+        boid.update(boids, getCursorPosition(), canvas.width, canvas.height);
+        if (boid.isOutside(canvas.width, canvas.height)) {
             boids[i] = generateRandomBoid();
             birds[i] = new Bird(boids[i]);
         }

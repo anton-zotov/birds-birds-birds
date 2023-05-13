@@ -1,26 +1,27 @@
 import { Vector } from "./vector";
 
 export class Boid {
-    position: Vector;
-    velocity: Vector;
-    private acceleration: Vector;
-    private maxSpeed: number;
-    private maxForce: number;
+    public alignmentForce = new Vector(0, 0);
+    public cohesionForce = new Vector(0, 0);
+    public separationForce = new Vector(0, 0);
+
+    private acceleration = new Vector(0, 0);
     private seekForceMultiplier = 1.5;
+    private edgeAvoidanceDistance = 20;
+    private edgeAvoidanceStrength = 1;
 
-    constructor(position: Vector, velocity: Vector, maxSpeed: number, maxForce: number) {
-        this.position = position;
-        this.velocity = velocity;
-        this.acceleration = new Vector(0, 0);
-        this.maxSpeed = maxSpeed;
-        this.maxForce = maxForce;
-    }
+    constructor(
+        public position: Vector,
+        public velocity: Vector,
+        private maxSpeed: number,
+        private maxForce: number
+    ) {}
 
-    update(boids: Boid[], cursorPosition: Vector): void {
-        this.applyBehaviors(boids);
+    update(boids: Boid[], cursorPosition: Vector, screenWidth: number, screenHeight: number): void {
+        this.applyFlockingBehaviors(boids);
 
-        const cursorForce = this.seek(cursorPosition).mult(this.seekForceMultiplier);
-        this.applyForce(cursorForce);
+        this.applyCursorForce(cursorPosition);
+        this.applyEdgeAvoidanceForce(screenWidth, screenHeight);
 
         this.updateVelocity();
         this.updatePosition();
@@ -42,55 +43,88 @@ export class Boid {
         return steer;
     }
 
-    private applyBehaviors(boids: Boid[]): void {
-        const separate = this.separate(boids, 50);
-        const align = this.align(boids, 50);
-        const cohesion = this.cohesion(boids, 50);
+    private applyFlockingBehaviors(boids: Boid[]): void {
+        this.alignmentForce = this.calculateAlignmentForce(boids, 50);
+        this.cohesionForce = this.calculateCohesionForce(boids, 50);
+        this.separationForce = this.calculateSeparationForce(boids, 50);
 
-        this.applySteerForce(separate);
-        this.applySteerForce(align);
-        this.applySteerForce(cohesion);
+        this.applySteerForce(this.separationForce);
+        this.applySteerForce(this.alignmentForce);
+        this.applySteerForce(this.cohesionForce);
     }
 
-    private separate(boids: Boid[], range: number): Vector {
-        const diffVectors = boids
-            .filter(
-                (boid) =>
-                    Vector.dist(this.position, boid.position) > 0 &&
-                    Vector.dist(this.position, boid.position) < range
-            )
-            .map((boid) =>
-                this.position
-                    .sub(boid.position)
-                    .normalize()
-                    .div(Vector.dist(this.position, boid.position))
-            );
+    private applyCursorForce(cursorPosition: Vector): void {
+        const cursorForce = this.seek(cursorPosition).mult(this.seekForceMultiplier);
+        this.applyForce(cursorForce);
+    }
+
+    private applyEdgeAvoidanceForce(screenWidth: number, screenHeight: number): void {
+        const edgeAvoidanceForce = this.calculateEdgeAvoidanceForce(screenWidth, screenHeight);
+        this.applyForce(edgeAvoidanceForce);
+    }
+
+    private getBoidsInRange(boids: Boid[], range: number): Boid[] {
+        return boids.filter(
+            (boid) =>
+                Vector.dist(this.position, boid.position) > 0 &&
+                Vector.dist(this.position, boid.position) < range
+        );
+    }
+
+    private calculateSeparationForce(boids: Boid[], range: number): Vector {
+        const diffVectors = this.getBoidsInRange(boids, range).map((boid) =>
+            this.position
+                .sub(boid.position)
+                .normalize()
+                .div(Vector.dist(this.position, boid.position))
+        );
 
         return this.getAverageVector(diffVectors);
     }
 
-    private align(boids: Boid[], range: number): Vector {
-        const velocityVectors = boids
-            .filter(
-                (boid) =>
-                    Vector.dist(this.position, boid.position) > 0 &&
-                    Vector.dist(this.position, boid.position) < range
-            )
-            .map((boid) => boid.velocity);
+    private calculateAlignmentForce(boids: Boid[], range: number): Vector {
+        const velocityVectors = this.getBoidsInRange(boids, range).map((boid) => boid.velocity);
 
         return this.getAverageVector(velocityVectors);
     }
 
-    private cohesion(boids: Boid[], range: number): Vector {
-        const positionVectors = boids
-            .filter(
-                (boid) =>
-                    Vector.dist(this.position, boid.position) > 0 &&
-                    Vector.dist(this.position, boid.position) < range
-            )
-            .map((boid) => boid.position);
+    private calculateCohesionForce(boids: Boid[], range: number): Vector {
+        const positionVectors = this.getBoidsInRange(boids, range).map((boid) => boid.position);
 
         return this.getAverageVector(positionVectors);
+    }
+
+    private calculateEdgeAvoidanceForce(screenWidth: number, screenHeight: number): Vector {
+        let avoidanceForce = new Vector(0, 0);
+
+        const leftEdgeDistance = this.position.x;
+        const rightEdgeDistance = screenWidth - this.position.x;
+        const topEdgeDistance = this.position.y;
+        const bottomEdgeDistance = screenHeight - this.position.y;
+
+        if (leftEdgeDistance < this.edgeAvoidanceDistance) {
+            avoidanceForce.x =
+                ((this.edgeAvoidanceDistance - leftEdgeDistance) / this.edgeAvoidanceDistance) *
+                this.edgeAvoidanceStrength;
+        } else if (rightEdgeDistance < this.edgeAvoidanceDistance) {
+            avoidanceForce.x = -(
+                ((this.edgeAvoidanceDistance - rightEdgeDistance) / this.edgeAvoidanceDistance) *
+                this.edgeAvoidanceStrength
+            );
+        }
+
+        if (topEdgeDistance < this.edgeAvoidanceDistance) {
+            avoidanceForce.y =
+                ((this.edgeAvoidanceDistance - topEdgeDistance) / this.edgeAvoidanceDistance) *
+                this.edgeAvoidanceStrength;
+        } else if (bottomEdgeDistance < this.edgeAvoidanceDistance) {
+            avoidanceForce.y = -(
+                ((this.edgeAvoidanceDistance - bottomEdgeDistance) / this.edgeAvoidanceDistance) *
+                this.edgeAvoidanceStrength
+            );
+        }
+
+        return avoidanceForce;
     }
 
     private getAverageVector(vectors: Vector[]): Vector {
@@ -103,14 +137,14 @@ export class Boid {
         this.acceleration = this.acceleration.add(force);
     }
 
-    private applySteerForce(vector: Vector): void {
-        if (vector.mag() > 0) {
-            const steer = vector
+    private applySteerForce(force: Vector): void {
+        if (force.mag() > 0) {
+            const steerForce = force
                 .normalize()
                 .mult(this.maxSpeed)
                 .sub(this.velocity)
                 .limit(this.maxForce);
-            this.applyForce(steer);
+            this.applyForce(steerForce);
         }
     }
 
