@@ -24,14 +24,14 @@ export class Boid {
 
     update(
         boids: Boid[],
-        cursorPosition: Vector,
+        cursorPosition: Vector | null,
         obstacles: Obstacle[],
         screenWidth: number,
         screenHeight: number
     ): void {
         this.applyFlockingBehaviors(boids);
 
-        this.applyCursorForce(cursorPosition);
+        if (cursorPosition) this.applyCursorForce(cursorPosition);
         this.applyEdgeAvoidanceForce(screenWidth, screenHeight);
         this.applyObstacleAvoidanceForce(obstacles);
 

@@ -2,7 +2,8 @@ import { Vector } from "./vector";
 
 // cursor position
 
-let cursorPosition = new Vector(0, 0);
+let cursorPosition: Vector = new Vector(0, 0);
+let cursorIsDown = false;
 
 function updateCursorPosition(event: MouseEvent | TouchEvent) {
     if (event instanceof TouchEvent) {
@@ -12,11 +13,25 @@ function updateCursorPosition(event: MouseEvent | TouchEvent) {
     }
 }
 
+function onCursorUp() {
+    cursorIsDown = false;
+}
+
+function onCursorDown() {
+    cursorIsDown = true;
+}
+
 window.addEventListener("mousemove", updateCursorPosition);
 window.addEventListener("touchmove", updateCursorPosition);
 
-export function getCursorPosition(): Vector {
-    return cursorPosition;
+window.addEventListener("mousedown", onCursorDown);
+window.addEventListener("touchstart", onCursorDown);
+
+window.addEventListener("mouseup", onCursorUp);
+window.addEventListener("touchend", onCursorUp);
+
+export function getCursorPosition(): Vector | null {
+    return cursorIsDown ? cursorPosition : null;
 }
 
 // bird count input

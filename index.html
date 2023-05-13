@@ -5,10 +5,13 @@
         <title>Birds birds birds!</title>
     </head>
     <body>
-        <label id="birdCountLabel"
-            >Number of birds:
-            <input id="birdCount" type="number" min="1" value="300" />
-        </label>
+        <div id="panel">
+            <div>Press on the screen to attract the birds.</div>
+            <label id="birdCountLabel"
+                >Number of birds:
+                <input id="birdCount" type="number" min="1" value="300" />
+            </label>
+        </div>
         <canvas id="canvas" width="800" height="600"></canvas>
         <script src="./src/index.ts"></script>
     </body>

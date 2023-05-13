@@ -52,7 +52,24 @@ function runSimulation(frameCount = 0) {
         obstacle.draw(canvas.context);
     });
 
+    drawCursor();
+
     requestAnimationFrame(() => runSimulation(frameCount + 1));
+}
+
+function drawCursor() {
+    const cursorPosition = getCursorPosition();
+    if (cursorPosition) {
+        const size = 10;
+
+        canvas.context.strokeStyle = "blue";
+        canvas.context.beginPath();
+        canvas.context.moveTo(cursorPosition.x - size, cursorPosition.y - size);
+        canvas.context.lineTo(cursorPosition.x + size, cursorPosition.y + size);
+        canvas.context.moveTo(cursorPosition.x + size, cursorPosition.y - size);
+        canvas.context.lineTo(cursorPosition.x - size, cursorPosition.y + size);
+        canvas.context.stroke();
+    }
 }
 
 onBirdCountChange((birdCount) => {
