@@ -7,10 +7,18 @@
     <body>
         <div id="panel">
             <div>Press on the screen to attract the birds.</div>
-            <label id="birdCountLabel"
-                >Number of birds:
-                <input id="birdCount" type="number" min="1" value="200" />
-            </label>
+            <div>
+                <label>
+                    <span>Number of birds:</span>
+                    <input id="birdCount" type="number" min="1" value="200" />
+                </label>
+            </div>
+            <div>
+                <label>
+                    <span>Number of obstacles:</span>
+                    <input id="obstacleCount" type="number" min="1" value="10" />
+                </label>
+            </div>
         </div>
         <canvas id="canvas" width="800" height="600"></canvas>
         <script src="./src/index.ts"></script>

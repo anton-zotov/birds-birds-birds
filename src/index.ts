@@ -3,7 +3,7 @@ import { Bird } from "./bird";
 import { Boid } from "./boid";
 import { Vector } from "./vector";
 import { Canvas } from "./canvas";
-import { getCursorPosition, onBirdCountChange } from "./ui";
+import { getCursorPosition, onBirdCountChange, onObstacleCountChange } from "./ui";
 import { Obstacle } from "./obstacle";
 
 const canvas = new Canvas("canvas");
@@ -80,6 +80,10 @@ function drawCursor() {
 onBirdCountChange((birdCount) => {
     generateBirds(birdCount);
 });
+onObstacleCountChange((obstacleCount) => {
+    generateObstacles(obstacleCount);
+});
+
 generateObstacles(10);
 generateBirds(200);
 runSimulation();

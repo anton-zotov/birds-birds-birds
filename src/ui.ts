@@ -43,3 +43,13 @@ export function onBirdCountChange(callback: (birdCount: number) => void): void {
         callback(parseInt(birdCountInput.value));
     });
 }
+
+// obstacle count input
+
+let obstacleCountInput = document.getElementById("obstacleCount") as HTMLInputElement;
+
+export function onObstacleCountChange(callback: (obstacleCount: number) => void): void {
+    obstacleCountInput.addEventListener("change", () => {
+        callback(parseInt(obstacleCountInput.value));
+    });
+}
