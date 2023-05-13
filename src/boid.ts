@@ -106,8 +106,9 @@ export class Boid {
     }
 
     private calculateCohesionForce(boids: Boid[], range: number): Vector {
-        const positionVectors = this.getBoidsInRange(boids, range).map((boid) => boid.position);
-
+        const positionVectors = this.getBoidsInRange(boids, range).map((boid) =>
+            boid.position.sub(this.position)
+        );
         return this.getAverageVector(positionVectors);
     }
 
