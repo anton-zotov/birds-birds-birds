@@ -300,7 +300,7 @@ var Boid = /** @class */function () {
   }
   Boid.prototype.update = function (boids, cursorPosition, obstacles, screenWidth, screenHeight) {
     this.applyFlockingBehaviors(boids);
-    this.applyCursorForce(cursorPosition);
+    if (cursorPosition) this.applyCursorForce(cursorPosition);
     this.applyEdgeAvoidanceForce(screenWidth, screenHeight);
     this.applyObstacleAvoidanceForce(obstacles);
     this.updateVelocity();
@@ -474,6 +474,7 @@ exports.onBirdCountChange = exports.getCursorPosition = void 0;
 var vector_1 = require("./vector");
 // cursor position
 var cursorPosition = new vector_1.Vector(0, 0);
+var cursorIsDown = false;
 function updateCursorPosition(event) {
   if (event instanceof TouchEvent) {
     cursorPosition = new vector_1.Vector(event.touches[0].clientX, event.touches[0].clientY);
@@ -481,10 +482,20 @@ function updateCursorPosition(event) {
     cursorPosition = new vector_1.Vector(event.clientX, event.clientY);
   }
 }
+function onCursorUp() {
+  cursorIsDown = false;
+}
+function onCursorDown() {
+  cursorIsDown = true;
+}
 window.addEventListener("mousemove", updateCursorPosition);
 window.addEventListener("touchmove", updateCursorPosition);
+window.addEventListener("mousedown", onCursorDown);
+window.addEventListener("touchstart", onCursorDown);
+window.addEventListener("mouseup", onCursorUp);
+window.addEventListener("touchend", onCursorUp);
 function getCursorPosition() {
-  return cursorPosition;
+  return cursorIsDown ? cursorPosition : null;
 }
 exports.getCursorPosition = getCursorPosition;
 // bird count input
@@ -577,9 +588,23 @@ function runSimulation(frameCount) {
   obstacles.forEach(function (obstacle) {
     obstacle.draw(canvas.context);
   });
+  drawCursor();
   requestAnimationFrame(function () {
     return runSimulation(frameCount + 1);
   });
+}
+function drawCursor() {
+  var cursorPosition = (0, ui_1.getCursorPosition)();
+  if (cursorPosition) {
+    var size = 10;
+    canvas.context.strokeStyle = "blue";
+    canvas.context.beginPath();
+    canvas.context.moveTo(cursorPosition.x - size, cursorPosition.y - size);
+    canvas.context.lineTo(cursorPosition.x + size, cursorPosition.y + size);
+    canvas.context.moveTo(cursorPosition.x + size, cursorPosition.y - size);
+    canvas.context.lineTo(cursorPosition.x - size, cursorPosition.y + size);
+    canvas.context.stroke();
+  }
 }
 (0, ui_1.onBirdCountChange)(function (birdCount) {
   generateBirds(birdCount);
@@ -612,7 +637,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49809" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51675" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
