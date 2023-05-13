@@ -9,7 +9,7 @@ import { Obstacle } from "./obstacle";
 const canvas = new Canvas("canvas");
 
 function generateRandomBoid(): Boid {
-    const MAX_SPEED = 2;
+    const MAX_SPEED = 4;
     const MAX_FORCE = 0.05;
     const position = new Vector(Math.random() * canvas.width, Math.random() * canvas.height);
     const velocity = new Vector(Math.random() - 0.5, Math.random() - 0.5);
