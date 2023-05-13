@@ -4,5 +4,18 @@
     overflow: hidden;
 }
 
+#birdCountLabel {
+    position: absolute;
+    top: 0;
+    left: 10px;
+}
+
+#birdCount {
+    color: white;
+    padding: 0 4px;
+    width: 50px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
 
 /*# sourceMappingURL=/src.f10117fe.css.map */

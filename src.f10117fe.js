@@ -208,6 +208,17 @@ var Bird = /** @class */function () {
     ctx.fill();
     ctx.restore();
   };
+  Bird.prototype.printBoidForces = function (ctx) {
+    ctx.save();
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("".concat(this.boid.alignmentForce.x.toFixed(2), ", ").concat(this.boid.alignmentForce.y.toFixed(2)), this.boid.position.x + 10, this.boid.position.y - 10);
+    ctx.fillStyle = "red";
+    ctx.fillText("".concat(this.boid.cohesionForce.x.toFixed(2), ", ").concat(this.boid.cohesionForce.y.toFixed(2)), this.boid.position.x + 10, this.boid.position.y);
+    ctx.fillStyle = "blue";
+    ctx.fillText("".concat(this.boid.separationForce.x.toFixed(2), ", ").concat(this.boid.separationForce.y.toFixed(2)), this.boid.position.x + 10, this.boid.position.y + 10);
+    ctx.restore();
+  };
   return Bird;
 }();
 exports.Bird = Bird;
@@ -273,17 +284,25 @@ exports.Boid = void 0;
 var vector_1 = require("./vector");
 var Boid = /** @class */function () {
   function Boid(position, velocity, maxSpeed, maxForce) {
-    this.seekForceMultiplier = 1.5;
     this.position = position;
     this.velocity = velocity;
-    this.acceleration = new vector_1.Vector(0, 0);
     this.maxSpeed = maxSpeed;
     this.maxForce = maxForce;
+    this.alignmentForce = new vector_1.Vector(0, 0);
+    this.cohesionForce = new vector_1.Vector(0, 0);
+    this.separationForce = new vector_1.Vector(0, 0);
+    this.acceleration = new vector_1.Vector(0, 0);
+    this.seekForceMultiplier = 1.5;
+    this.edgeAvoidanceDistance = 20;
+    this.edgeAvoidanceStrength = 1;
+    this.obstacleAvoidanceDistance = 20;
+    this.obstacleAvoidanceStrength = 0.5;
   }
-  Boid.prototype.update = function (boids, cursorPosition) {
-    this.applyBehaviors(boids);
-    var cursorForce = this.seek(cursorPosition).mult(this.seekForceMultiplier);
-    this.applyForce(cursorForce);
+  Boid.prototype.update = function (boids, cursorPosition, obstacles, screenWidth, screenHeight) {
+    this.applyFlockingBehaviors(boids);
+    this.applyCursorForce(cursorPosition);
+    this.applyEdgeAvoidanceForce(screenWidth, screenHeight);
+    this.applyObstacleAvoidanceForce(obstacles);
     this.updateVelocity();
     this.updatePosition();
     this.resetAcceleration();
@@ -296,40 +315,81 @@ var Boid = /** @class */function () {
     var steer = desired.sub(this.velocity).limit(this.maxForce);
     return steer;
   };
-  Boid.prototype.applyBehaviors = function (boids) {
-    var separate = this.separate(boids, 50);
-    var align = this.align(boids, 50);
-    var cohesion = this.cohesion(boids, 50);
-    this.applySteerForce(separate);
-    this.applySteerForce(align);
-    this.applySteerForce(cohesion);
+  Boid.prototype.applyFlockingBehaviors = function (boids) {
+    this.alignmentForce = this.calculateAlignmentForce(boids, 50);
+    this.cohesionForce = this.calculateCohesionForce(boids, 50);
+    this.separationForce = this.calculateSeparationForce(boids, 50);
+    this.applySteerForce(this.separationForce);
+    this.applySteerForce(this.alignmentForce);
+    this.applySteerForce(this.cohesionForce);
   };
-  Boid.prototype.separate = function (boids, range) {
+  Boid.prototype.applyCursorForce = function (cursorPosition) {
+    var cursorForce = this.seek(cursorPosition).mult(this.seekForceMultiplier);
+    this.applyForce(cursorForce);
+  };
+  Boid.prototype.applyEdgeAvoidanceForce = function (screenWidth, screenHeight) {
+    var edgeAvoidanceForce = this.calculateEdgeAvoidanceForce(screenWidth, screenHeight);
+    this.applyForce(edgeAvoidanceForce);
+  };
+  Boid.prototype.applyObstacleAvoidanceForce = function (obstacles) {
+    var obstacleAvoidanceForce = this.calculateObstacleAvoidanceForce(obstacles);
+    this.applyForce(obstacleAvoidanceForce);
+  };
+  Boid.prototype.getBoidsInRange = function (boids, range) {
     var _this = this;
-    var diffVectors = boids.filter(function (boid) {
+    return boids.filter(function (boid) {
       return vector_1.Vector.dist(_this.position, boid.position) > 0 && vector_1.Vector.dist(_this.position, boid.position) < range;
-    }).map(function (boid) {
+    });
+  };
+  Boid.prototype.calculateSeparationForce = function (boids, range) {
+    var _this = this;
+    var diffVectors = this.getBoidsInRange(boids, range).map(function (boid) {
       return _this.position.sub(boid.position).normalize().div(vector_1.Vector.dist(_this.position, boid.position));
     });
     return this.getAverageVector(diffVectors);
   };
-  Boid.prototype.align = function (boids, range) {
-    var _this = this;
-    var velocityVectors = boids.filter(function (boid) {
-      return vector_1.Vector.dist(_this.position, boid.position) > 0 && vector_1.Vector.dist(_this.position, boid.position) < range;
-    }).map(function (boid) {
+  Boid.prototype.calculateAlignmentForce = function (boids, range) {
+    var velocityVectors = this.getBoidsInRange(boids, range).map(function (boid) {
       return boid.velocity;
     });
     return this.getAverageVector(velocityVectors);
   };
-  Boid.prototype.cohesion = function (boids, range) {
-    var _this = this;
-    var positionVectors = boids.filter(function (boid) {
-      return vector_1.Vector.dist(_this.position, boid.position) > 0 && vector_1.Vector.dist(_this.position, boid.position) < range;
-    }).map(function (boid) {
+  Boid.prototype.calculateCohesionForce = function (boids, range) {
+    var positionVectors = this.getBoidsInRange(boids, range).map(function (boid) {
       return boid.position;
     });
     return this.getAverageVector(positionVectors);
+  };
+  Boid.prototype.calculateEdgeAvoidanceForce = function (screenWidth, screenHeight) {
+    var avoidanceForce = new vector_1.Vector(0, 0);
+    var leftEdgeDistance = this.position.x;
+    var rightEdgeDistance = screenWidth - this.position.x;
+    var topEdgeDistance = this.position.y;
+    var bottomEdgeDistance = screenHeight - this.position.y;
+    if (leftEdgeDistance < this.edgeAvoidanceDistance) {
+      avoidanceForce.x = (this.edgeAvoidanceDistance - leftEdgeDistance) / this.edgeAvoidanceDistance * this.edgeAvoidanceStrength;
+    } else if (rightEdgeDistance < this.edgeAvoidanceDistance) {
+      avoidanceForce.x = -((this.edgeAvoidanceDistance - rightEdgeDistance) / this.edgeAvoidanceDistance * this.edgeAvoidanceStrength);
+    }
+    if (topEdgeDistance < this.edgeAvoidanceDistance) {
+      avoidanceForce.y = (this.edgeAvoidanceDistance - topEdgeDistance) / this.edgeAvoidanceDistance * this.edgeAvoidanceStrength;
+    } else if (bottomEdgeDistance < this.edgeAvoidanceDistance) {
+      avoidanceForce.y = -((this.edgeAvoidanceDistance - bottomEdgeDistance) / this.edgeAvoidanceDistance * this.edgeAvoidanceStrength);
+    }
+    return avoidanceForce;
+  };
+  Boid.prototype.calculateObstacleAvoidanceForce = function (obstacles) {
+    var avoidanceForce = new vector_1.Vector(0, 0);
+    for (var _i = 0, obstacles_1 = obstacles; _i < obstacles_1.length; _i++) {
+      var obstacle = obstacles_1[_i];
+      var directionToObstacle = this.position.sub(obstacle.center);
+      var distanceToObstacle = directionToObstacle.mag();
+      if (distanceToObstacle < this.obstacleAvoidanceDistance + obstacle.radius) {
+        var avoidanceStrength = (this.obstacleAvoidanceDistance + obstacle.radius - distanceToObstacle) / this.obstacleAvoidanceDistance * this.obstacleAvoidanceStrength;
+        avoidanceForce = avoidanceForce.add(directionToObstacle.normalize().mult(avoidanceStrength));
+      }
+    }
+    return avoidanceForce;
   };
   Boid.prototype.getAverageVector = function (vectors) {
     var sum = vectors.reduce(function (sum, vector) {
@@ -341,10 +401,10 @@ var Boid = /** @class */function () {
   Boid.prototype.applyForce = function (force) {
     this.acceleration = this.acceleration.add(force);
   };
-  Boid.prototype.applySteerForce = function (vector) {
-    if (vector.mag() > 0) {
-      var steer = vector.normalize().mult(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
-      this.applyForce(steer);
+  Boid.prototype.applySteerForce = function (force) {
+    if (force.mag() > 0) {
+      var steerForce = force.normalize().mult(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
+      this.applyForce(steerForce);
     }
   };
   Boid.prototype.updateVelocity = function () {
@@ -380,6 +440,20 @@ var Canvas = /** @class */function () {
       return _this.updateSize();
     });
   }
+  Object.defineProperty(Canvas.prototype, "width", {
+    get: function get() {
+      return this.element.width;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(Canvas.prototype, "height", {
+    get: function get() {
+      return this.element.height;
+    },
+    enumerable: false,
+    configurable: true
+  });
   Canvas.prototype.updateSize = function () {
     this.element.width = window.innerWidth;
     this.element.height = window.innerHeight;
@@ -421,7 +495,31 @@ function onBirdCountChange(callback) {
   });
 }
 exports.onBirdCountChange = onBirdCountChange;
-},{"./vector":"src/vector.ts"}],"src/index.ts":[function(require,module,exports) {
+},{"./vector":"src/vector.ts"}],"src/obstacle.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Obstacle = void 0;
+var Obstacle = /** @class */function () {
+  function Obstacle(center, radius) {
+    this.center = center;
+    this.radius = radius;
+  }
+  Obstacle.prototype.draw = function (ctx) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(this.center.x, this.center.y, this.radius, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.restore();
+  };
+  return Obstacle;
+}();
+exports.Obstacle = Obstacle;
+},{}],"src/index.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -433,11 +531,12 @@ var boid_1 = require("./boid");
 var vector_1 = require("./vector");
 var canvas_1 = require("./canvas");
 var ui_1 = require("./ui");
+var obstacle_1 = require("./obstacle");
 var canvas = new canvas_1.Canvas("canvas");
 function generateRandomBoid() {
   var MAX_SPEED = 2;
   var MAX_FORCE = 0.05;
-  var position = new vector_1.Vector(Math.random() * canvas.element.width, Math.random() * canvas.element.height);
+  var position = new vector_1.Vector(Math.random() * canvas.width, Math.random() * canvas.height);
   var velocity = new vector_1.Vector(Math.random() - 0.5, Math.random() - 0.5);
   return new boid_1.Boid(position, velocity, MAX_SPEED, MAX_FORCE);
 }
@@ -451,18 +550,32 @@ function generateBirds(amount) {
 }
 var boids;
 var birds;
+var obstacles;
+function generateRandomObstacle() {
+  var radius = Math.random() * 50;
+  var position = new vector_1.Vector(Math.random() * canvas.width, Math.random() * canvas.height);
+  return new obstacle_1.Obstacle(position, radius);
+}
+function generateObstacles(amount) {
+  obstacles = Array.from({
+    length: amount
+  }, generateRandomObstacle);
+}
 function runSimulation(frameCount) {
   if (frameCount === void 0) {
     frameCount = 0;
   }
   canvas.clear();
   boids.forEach(function (boid, i) {
-    boid.update(boids, (0, ui_1.getCursorPosition)());
-    if (boid.isOutside(canvas.element.width, canvas.element.height)) {
+    boid.update(boids, (0, ui_1.getCursorPosition)(), obstacles, canvas.width, canvas.height);
+    if (boid.isOutside(canvas.width, canvas.height)) {
       boids[i] = generateRandomBoid();
       birds[i] = new bird_1.Bird(boids[i]);
     }
     birds[i].draw(canvas.context, frameCount);
+  });
+  obstacles.forEach(function (obstacle) {
+    obstacle.draw(canvas.context);
   });
   requestAnimationFrame(function () {
     return runSimulation(frameCount + 1);
@@ -471,9 +584,10 @@ function runSimulation(frameCount) {
 (0, ui_1.onBirdCountChange)(function (birdCount) {
   generateBirds(birdCount);
 });
+generateObstacles(10);
 generateBirds(300);
 runSimulation();
-},{"./styles.css":"src/styles.css","./bird":"src/bird.ts","./boid":"src/boid.ts","./vector":"src/vector.ts","./canvas":"src/canvas.ts","./ui":"src/ui.ts"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./styles.css":"src/styles.css","./bird":"src/bird.ts","./boid":"src/boid.ts","./vector":"src/vector.ts","./canvas":"src/canvas.ts","./ui":"src/ui.ts","./obstacle":"src/obstacle.ts"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -498,7 +612,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64843" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49809" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
