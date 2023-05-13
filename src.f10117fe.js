@@ -184,7 +184,7 @@ var Bird = /** @class */function () {
     if (wingSpan === void 0) {
       wingSpan = 10;
     }
-    this.greenValue = 255;
+    this.greenValue = 0;
     this.boid = boid;
     this.wingSpan = wingSpan;
   }
@@ -202,9 +202,10 @@ var Bird = /** @class */function () {
     ctx.lineTo(-size / 2, size / 2);
     ctx.lineTo(-size / 2, -size / 2);
     ctx.closePath();
-    var color = "rgb(0, ".concat(this.greenValue, ", 0)");
-    ctx.fillStyle = color;
-    this.greenValue = Math.max(this.greenValue - 2, 0);
+    var color = "rgb(255, ".concat(this.greenValue, ", 255)");
+    // ctx.fillStyle = color;
+    ctx.fillStyle = "#EDF2F4";
+    this.greenValue = Math.min(this.greenValue + 2, 255);
     ctx.fill();
     ctx.restore();
   };
@@ -527,7 +528,7 @@ var Obstacle = /** @class */function () {
     ctx.beginPath();
     ctx.arc(this.center.x, this.center.y, this.radius, 0, 2 * Math.PI);
     ctx.closePath();
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "#8D99AE";
     ctx.fill();
     ctx.restore();
   };
@@ -581,6 +582,9 @@ function runSimulation(frameCount) {
     frameCount = 0;
   }
   canvas.clear();
+  // paint canvas black
+  canvas.context.fillStyle = "#2B2D42";
+  canvas.context.fillRect(0, 0, canvas.width, canvas.height);
   boids.forEach(function (boid, i) {
     boid.update(boids, (0, ui_1.getCursorPosition)(), obstacles, canvas.width, canvas.height);
     if (boid.isOutside(canvas.width, canvas.height)) {
@@ -641,7 +645,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54202" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54321" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
