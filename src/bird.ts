@@ -5,7 +5,7 @@ export class Bird {
     private wingSpan: number;
     private greenValue = 255;
 
-    constructor(boid: Boid, wingSpan: number) {
+    constructor(boid: Boid, wingSpan = 10) {
         this.boid = boid;
         this.wingSpan = wingSpan;
     }
