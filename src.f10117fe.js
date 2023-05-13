@@ -475,7 +475,7 @@ exports.Canvas = Canvas;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.onBirdCountChange = exports.getCursorPosition = void 0;
+exports.onObstacleCountChange = exports.onBirdCountChange = exports.getCursorPosition = void 0;
 var vector_1 = require("./vector");
 // cursor position
 var cursorPosition = new vector_1.Vector(0, 0);
@@ -511,6 +511,14 @@ function onBirdCountChange(callback) {
   });
 }
 exports.onBirdCountChange = onBirdCountChange;
+// obstacle count input
+var obstacleCountInput = document.getElementById("obstacleCount");
+function onObstacleCountChange(callback) {
+  obstacleCountInput.addEventListener("change", function () {
+    callback(parseInt(obstacleCountInput.value));
+  });
+}
+exports.onObstacleCountChange = onObstacleCountChange;
 },{"./vector":"src/vector.ts"}],"src/obstacle.ts":[function(require,module,exports) {
 "use strict";
 
@@ -617,6 +625,9 @@ function drawCursor() {
 (0, ui_1.onBirdCountChange)(function (birdCount) {
   generateBirds(birdCount);
 });
+(0, ui_1.onObstacleCountChange)(function (obstacleCount) {
+  generateObstacles(obstacleCount);
+});
 generateObstacles(10);
 generateBirds(200);
 runSimulation();
@@ -645,7 +656,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54876" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55023" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
