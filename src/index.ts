@@ -81,5 +81,5 @@ onBirdCountChange((birdCount) => {
     generateBirds(birdCount);
 });
 generateObstacles(10);
-generateBirds(300);
+generateBirds(200);
 runSimulation();
