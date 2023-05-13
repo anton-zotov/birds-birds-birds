@@ -18,3 +18,17 @@
     width: 50px;
     background-color: rgba(0, 0, 0, 0.5);
 }
+
+@media (max-width: 1000px) {
+    #panel {
+        padding: 20px;
+        font-size: 30px;
+    }
+
+    #birdCount {
+        color: white;
+        padding: 0 8px;
+        width: 100px;
+        font-size: 30px;
+    }
+}
