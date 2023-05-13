@@ -41,7 +41,7 @@ describe("Boid", () => {
         const previousPosition = boid.position;
         const previousVelocity = boid.velocity;
 
-        boid.update([], new Vector(0, 0));
+        boid.update([], new Vector(0, 0), [], 20, 20);
 
         expect(boid.position).not.toEqual(previousPosition);
         expect(boid.velocity).not.toEqual(previousVelocity);

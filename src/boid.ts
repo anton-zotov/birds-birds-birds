@@ -1,3 +1,4 @@
+import { Obstacle } from "./obstacle";
 import { Vector } from "./vector";
 
 export class Boid {
@@ -7,8 +8,12 @@ export class Boid {
 
     private acceleration = new Vector(0, 0);
     private seekForceMultiplier = 1.5;
+
     private edgeAvoidanceDistance = 20;
     private edgeAvoidanceStrength = 1;
+
+    private obstacleAvoidanceDistance = 20;
+    private obstacleAvoidanceStrength = 0.5;
 
     constructor(
         public position: Vector,
@@ -17,11 +22,18 @@ export class Boid {
         private maxForce: number
     ) {}
 
-    update(boids: Boid[], cursorPosition: Vector, screenWidth: number, screenHeight: number): void {
+    update(
+        boids: Boid[],
+        cursorPosition: Vector,
+        obstacles: Obstacle[],
+        screenWidth: number,
+        screenHeight: number
+    ): void {
         this.applyFlockingBehaviors(boids);
 
         this.applyCursorForce(cursorPosition);
         this.applyEdgeAvoidanceForce(screenWidth, screenHeight);
+        this.applyObstacleAvoidanceForce(obstacles);
 
         this.updateVelocity();
         this.updatePosition();
@@ -61,6 +73,11 @@ export class Boid {
     private applyEdgeAvoidanceForce(screenWidth: number, screenHeight: number): void {
         const edgeAvoidanceForce = this.calculateEdgeAvoidanceForce(screenWidth, screenHeight);
         this.applyForce(edgeAvoidanceForce);
+    }
+
+    private applyObstacleAvoidanceForce(obstacles: Obstacle[]): void {
+        const obstacleAvoidanceForce = this.calculateObstacleAvoidanceForce(obstacles);
+        this.applyForce(obstacleAvoidanceForce);
     }
 
     private getBoidsInRange(boids: Boid[], range: number): Boid[] {
@@ -122,6 +139,27 @@ export class Boid {
                 ((this.edgeAvoidanceDistance - bottomEdgeDistance) / this.edgeAvoidanceDistance) *
                 this.edgeAvoidanceStrength
             );
+        }
+
+        return avoidanceForce;
+    }
+
+    private calculateObstacleAvoidanceForce(obstacles: Obstacle[]): Vector {
+        let avoidanceForce = new Vector(0, 0);
+
+        for (const obstacle of obstacles) {
+            const directionToObstacle = this.position.sub(obstacle.center);
+            const distanceToObstacle = directionToObstacle.mag();
+
+            if (distanceToObstacle < this.obstacleAvoidanceDistance + obstacle.radius) {
+                const avoidanceStrength =
+                    ((this.obstacleAvoidanceDistance + obstacle.radius - distanceToObstacle) /
+                        this.obstacleAvoidanceDistance) *
+                    this.obstacleAvoidanceStrength;
+                avoidanceForce = avoidanceForce.add(
+                    directionToObstacle.normalize().mult(avoidanceStrength)
+                );
+            }
         }
 
         return avoidanceForce;

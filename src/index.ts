@@ -4,6 +4,7 @@ import { Boid } from "./boid";
 import { Vector } from "./vector";
 import { Canvas } from "./canvas";
 import { getCursorPosition, onBirdCountChange } from "./ui";
+import { Obstacle } from "./obstacle";
 
 const canvas = new Canvas("canvas");
 
@@ -23,16 +24,32 @@ function generateBirds(amount: number): void {
 
 let boids: Boid[];
 let birds: Bird[];
+let obstacles: Obstacle[];
+
+function generateRandomObstacle(): Obstacle {
+    const radius = Math.random() * 50;
+    const position = new Vector(Math.random() * canvas.width, Math.random() * canvas.height);
+
+    return new Obstacle(position, radius);
+}
+
+function generateObstacles(amount: number): void {
+    obstacles = Array.from({ length: amount }, generateRandomObstacle);
+}
 
 function runSimulation(frameCount = 0) {
     canvas.clear();
     boids.forEach((boid, i) => {
-        boid.update(boids, getCursorPosition(), canvas.width, canvas.height);
+        boid.update(boids, getCursorPosition(), obstacles, canvas.width, canvas.height);
         if (boid.isOutside(canvas.width, canvas.height)) {
             boids[i] = generateRandomBoid();
             birds[i] = new Bird(boids[i]);
         }
         birds[i].draw(canvas.context, frameCount);
+    });
+
+    obstacles.forEach((obstacle) => {
+        obstacle.draw(canvas.context);
     });
 
     requestAnimationFrame(() => runSimulation(frameCount + 1));
@@ -41,5 +58,6 @@ function runSimulation(frameCount = 0) {
 onBirdCountChange((birdCount) => {
     generateBirds(birdCount);
 });
+generateObstacles(10);
 generateBirds(300);
 runSimulation();
