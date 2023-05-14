@@ -40,7 +40,6 @@ function generateObstacles(amount: number): void {
 function runSimulation(frameCount = 0) {
     canvas.clear();
 
-    // paint canvas black
     canvas.context.fillStyle = "#2B2D42";
     canvas.context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -77,12 +76,8 @@ function drawCursor() {
     }
 }
 
-onBirdCountChange((birdCount) => {
-    generateBirds(birdCount);
-});
-onObstacleCountChange((obstacleCount) => {
-    generateObstacles(obstacleCount);
-});
+onBirdCountChange(generateBirds);
+onObstacleCountChange(generateObstacles);
 
 generateObstacles(10);
 generateBirds(200);

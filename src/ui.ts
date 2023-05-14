@@ -13,19 +13,19 @@ function updateCursorPosition(event: MouseEvent | TouchEvent) {
     }
 }
 
-function onCursorUp() {
-    cursorIsDown = false;
-}
+window.addEventListener("mousemove", updateCursorPosition);
+window.addEventListener("touchmove", updateCursorPosition);
 
 function onCursorDown() {
     cursorIsDown = true;
 }
 
-window.addEventListener("mousemove", updateCursorPosition);
-window.addEventListener("touchmove", updateCursorPosition);
-
 window.addEventListener("mousedown", onCursorDown);
 window.addEventListener("touchstart", onCursorDown);
+
+function onCursorUp() {
+    cursorIsDown = false;
+}
 
 window.addEventListener("mouseup", onCursorUp);
 window.addEventListener("touchend", onCursorUp);

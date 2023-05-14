@@ -3,7 +3,6 @@ import { Boid } from "./boid";
 export class Bird {
     private boid: Boid;
     private wingSpan: number;
-    private greenValue = 0;
 
     constructor(boid: Boid, wingSpan = 10) {
         this.boid = boid;
@@ -26,10 +25,7 @@ export class Bird {
         ctx.lineTo(-size / 2, -size / 2);
         ctx.closePath();
 
-        const color = `rgb(255, ${this.greenValue}, 255)`;
-        // ctx.fillStyle = color;
         ctx.fillStyle = "#EDF2F4";
-        this.greenValue = Math.min(this.greenValue + 2, 255);
         ctx.fill();
 
         ctx.restore();
